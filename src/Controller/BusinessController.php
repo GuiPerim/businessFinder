@@ -15,7 +15,7 @@ class BusinessController extends AbstractController
      */
     public function index()
     {
-        $business = $this->getDoctrine()->getRepository(Business::class)->findBy([], ['id' => 'DESC']);
+        $business = $this->getDoctrine()->getRepository(Business::class)->findBy([], ['title' => 'ASC']);
         return $this->render('business/index.html.twig', [
             'business' => $business
         ]);
@@ -26,7 +26,7 @@ class BusinessController extends AbstractController
     */
     public function create()
     {
-        $categories = $this->getDoctrine()->getRepository(Categories::class)->findAll();
+        $categories = $this->getDoctrine()->getRepository(Categories::class)->findBy([],['name' => 'ASC']);
         return $this->render('business/create.html.twig', [
             'categories' => $categories
         ]);
@@ -43,17 +43,21 @@ class BusinessController extends AbstractController
 
         //Recuperamos o valor enviado através do método POST
         $title = $request->request->get('title');
-        $phone = $request->request->get('phone');
+        $phone = preg_replace( '/[^0-9]/', '', $request->request->get('phone'));
         $address = $request->request->get('address');
-        $zipcode = $request->request->get('zipcode');
+        $zipcode = preg_replace( '/[^0-9]/', '', $request->request->get('zipcode'));
         $state = $request->request->get('state');
         $city = $request->request->get('city');
         $description = $request->request->get('description');
         $categories = $request->request->get('category');
 
+
         //Se o valor enviado for nulo, redirecionamos para á página inicial mostrando a msg de erro
         if (empty($title)) {
             $errors .= "<p>Enter a valid <strong>title</strong></p>";
+        }
+        if (empty($phone) || strlen($phone) < 10) {
+            $errors .= "<p>Enter a valid <strong>phone</strong></p>";
         }
         if (empty($address)) {
             $errors .= "<p>Enter a valid <strong>address</strong></p>";
@@ -106,7 +110,7 @@ class BusinessController extends AbstractController
 
                 $this->addFlash(
                     'success',
-                    'Business Create!!'
+                    'Business Created!!'
                 );
             }
             catch(DBALException $e){

@@ -19,32 +19,19 @@ class BusinessRepository extends ServiceEntityRepository
         parent::__construct($registry, Business::class);
     }
 
-    // /**
-    //  * @return Business[] Returns an array of Business objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findBySearch($value)
     {
-        return $this->createQueryBuilder('b')
-            ->andWhere('b.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('b.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        $qb = $this->createQueryBuilder('b');
+        $qb->select('b.id, b.title, b.address, b.city, b.state, b.phone, b.description')
+            ->addSelect('c.name AS category')
+            ->innerJoin('b.category', 'c')
+            ->where($qb->expr()->like('b.title', ':search'))
+            ->orWhere($qb->expr()->like('b.address', ':search'))
+            ->orWhere($qb->expr()->like('b.zipcode', ':search'))
+            ->orWhere($qb->expr()->like('b.city', ':search'))
+            ->orWhere($qb->expr()->like('c.name', ':search'))
+            ->orderBy('b.title', 'ASC')
+            -> setParameter('search', '%'.$value.'%');
+        return $qb->getQuery()->getResult();
     }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Business
-    {
-        return $this->createQueryBuilder('b')
-            ->andWhere('b.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Business Finder - {{ search }}{% endblock %}
+
+{% block body %}
+    <style>
+        .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+        .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    </style>
+
+    <div class="example-wrapper">
+        <h1>Results for "{{ search }}"</h1>
+        <a href="{{ path('index') }}" class="btn btn-sm btn-primary">Voltar</a>
+        <br>
+        <br>
+        {% for row in business %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ row.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ row.address }} {{ row.city }}/{{ row.state }}</h6>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ row.phone }}</h6>
+                    <p class="card-text">{{ row.description }}</p>
+
+                    {% for category in row.categories %}
+                        <span class="badge badge-{{ random(colors) }}">{{ category }}</span>
+                    {% endfor %}
+
+                    <br><br><a href="{{ path('index') }}" target="_blank" class="card-link">Full description</a>
+                </div>
+            </div><br>
+        {% endfor %}
+    </div>
+{% endblock %}
