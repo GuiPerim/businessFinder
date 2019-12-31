@@ -13,6 +13,13 @@
         <a href="{{ path('admin/new') }}" class="btn btn-sm btn-primary">Add Business</a>
         <br>
         <br>
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}" role="alert">
+                    {{ message|raw }}
+                </div><br/>
+            {% endfor %}
+        {% endfor %}
 
         <table class="table table-hover table-striped">
             <thead>
@@ -20,6 +27,7 @@
                 <th scope="col">Title</th>
                 <th scope="col">Phone</th>
                 <th scope="col">Address</th>
+                <th scope="col"></th>
             </tr>
             </thead>
             <tbody>
@@ -28,6 +36,7 @@
                     <td>{{ row.title }}</td>
                     <td>{{ row.phone }}</td>
                     <td>{{ row.address }} {{ row.city }}/{{ row.state }}</td>
+                    <td><a onclick="return confirm('Are you sure to delete?')" href="{{ path('delete', { 'id': row.id }) }}" type="button" class="btn btn-sm btn-danger">Delete</a></td>
                 </tr>
             {% endfor %}
 

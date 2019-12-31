@@ -34,4 +34,16 @@ class BusinessRepository extends ServiceEntityRepository
             -> setParameter('search', '%'.$value.'%');
         return $qb->getQuery()->getResult();
     }
+
+    public function findById($value)
+    {
+        $qb = $this->createQueryBuilder('b');
+        $qb->select('b.id, b.title, b.address, b.city, b.state, b.phone, b.zipcode, b.description')
+            ->addSelect('c.name AS category')
+            ->innerJoin('b.category', 'c')
+            ->where($qb->expr()->like('b.id', ':search'))
+            ->orderBy('b.title', 'ASC')
+            -> setParameter('search', '%'.$value.'%');
+        return $qb->getQuery()->getResult();
+    }
 }

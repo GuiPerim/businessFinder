@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Business;
 use App\Repository\BusinessRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,17 +30,19 @@ class DefaultController extends AbstractController
         //Recuperamos o valor enviado através do método POST
         $search = $request->request->get('search');
 
-        //Se o valor enviado for nulo, redirecionamos para á página inicial mostrando a msg de erro
         if (empty($search)) {
             $errors .= "Enter a valid <strong>search</strong>";
         }
 
         if (!$errors) {
+
+            //Realizamos a busca com base no valor informado
             $result = $businessRepository->findBySearch($search);
             if (!empty($result)) {
-
                 $arr = array();
                 $catArr = array();
+
+                //Percorremos o resultado e montamos o array conforme iremos exibir
                 foreach ($result as $key => $item) {
                     $arr[$item['id']] = $item;
                     $catArr[$item['id']][$key] = $item['category'];
@@ -51,6 +54,7 @@ class DefaultController extends AbstractController
             }
         }
 
+        //Se apresentar algum erro, redirecionamos para á página inicial mostrando a msg de erro
         if ($errors) {
             $this->addFlash('warning', $errors);
             return $this->redirectToRoute('index');
@@ -64,5 +68,46 @@ class DefaultController extends AbstractController
         }
     }
 
-//    function pr($var) { print '<pre>'; print_r($var); print '</pre>'; }
+    /**
+     * @Route("/detail/{id}", name="detail")
+     */
+    public function detail(BusinessRepository $businessRepository, $id)
+    {
+        $errors = null;
+
+        if (empty($id)) {
+            $errors .= "Enter a valid <strong>search</strong>";
+        }
+
+        if (!$errors) {
+            //Realizamos a busca com base no valor informado
+            $result = $businessRepository->findById($id);
+            if (!empty($result)) {
+                $arr = array();
+                $catArr = array();
+
+                //Percorremos o resultado e montamos o array conforme iremos exibir
+                foreach ($result as $key => $item) {
+                    $arr[$item['id']] = $item;
+                    $catArr[$item['id']][$key] = $item['category'];
+                    $arr[$item['id']]['categories'] = $catArr[$item['id']];
+                }
+            }
+            else {
+                $errors .= "No results found";
+            }
+        }
+
+        //Se apresentar algum erro, redirecionamos para á página inicial mostrando a msg de erro
+        if ($errors) {
+            $this->addFlash('warning', $errors);
+            return $this->redirectToRoute('index');
+        }
+        else {
+            return $this->render('default/detail.html.twig', [
+                'business' => $arr,
+                'colors'    => array("primary", "secondary", "success", "danger", "warning", "info", "dark")
+            ]);
+        }
+    }
 }

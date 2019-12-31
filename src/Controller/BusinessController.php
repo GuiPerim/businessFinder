@@ -4,21 +4,38 @@ namespace App\Controller;
 
 use App\Entity\Business;
 use App\Entity\Categories;
+use Doctrine\DBAL\DBALException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 class BusinessController extends AbstractController
 {
+    public function authorized()
+    {
+        $securityContext = $this->container->get('security.authorization_checker');
+        if (!$securityContext->isGranted('IS_AUTHENTICATED_FULLY')) {
+            $this->addFlash('warning', "Not authorized to access that page!");
+            return false;
+        }
+        else
+            return true;
+    }
+
+
     /**
      * @Route("/admin/list", name="admin/list")
      */
     public function index()
     {
-        $business = $this->getDoctrine()->getRepository(Business::class)->findBy([], ['title' => 'ASC']);
-        return $this->render('business/index.html.twig', [
-            'business' => $business
-        ]);
+        if ($this->authorized()) {
+            $business = $this->getDoctrine()->getRepository(Business::class)->findBy([], ['title' => 'ASC']);
+            return $this->render('business/index.html.twig', [
+                'business' => $business
+            ]);
+        }
+        else
+            return $this->redirectToRoute('index');
     }
 
     /**
@@ -26,10 +43,15 @@ class BusinessController extends AbstractController
     */
     public function create()
     {
-        $categories = $this->getDoctrine()->getRepository(Categories::class)->findBy([],['name' => 'ASC']);
-        return $this->render('business/create.html.twig', [
-            'categories' => $categories
-        ]);
+        if ($this->authorized()) {
+            $categories = $this->getDoctrine()->getRepository(Categories::class)->findBy([],['name' => 'ASC']);
+            return $this->render('business/create.html.twig', [
+                'categories' => $categories
+            ]);
+        }
+        else
+            return $this->redirectToRoute('index');
+
     }
 
     /**
@@ -129,5 +151,56 @@ class BusinessController extends AbstractController
 
         //TODO: Ao redirecionar, enviar os parametros cadastrados para não precisar digitar novamente os valores
         return $this->redirectToRoute('admin/new');
+    }
+
+    /**
+     * @Route("/admin/delete/{id?}", name="delete")
+     */
+    public function delete($id)
+    {
+        if ($this->authorized()) {
+            try {
+                if (empty($id)) {
+                    $this->addFlash(
+                        'warning',
+                        'Select one business to delete!'
+                    );
+                }
+                else {
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $business = $entityManager->getRepository(Business::class)->find($id);
+                    if (empty($business)) {
+                        $this->addFlash(
+                            'warning',
+                            'No business found!'
+                        );
+                    }
+                    else {
+                        $entityManager->remove($business);
+                        $entityManager->flush();
+                        $this->addFlash(
+                            'success',
+                            'Business removed!'
+                        );
+                    }
+                }
+            }
+            catch(DBALException $e){
+                $this->addFlash(
+                    'error',
+                    $e->getMessage()
+                );
+            }
+            catch(\Exception $e){
+                $this->addFlash(
+                    'error',
+                    $e->getMessage()
+                );
+            }
+
+            return $this->redirectToRoute('admin/list');
+        }
+        else
+            return $this->redirectToRoute('index');
     }
 }

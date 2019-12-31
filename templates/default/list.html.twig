@@ -25,7 +25,7 @@
                         <span class="badge badge-{{ random(colors) }}">{{ category }}</span>
                     {% endfor %}
 
-                    <br><br><a href="{{ path('index') }}" target="_blank" class="card-link">Full description</a>
+                    <br><br><a href="{{ path('detail', { 'id': row.id }) }}" target="_blank" class="card-link">Full description</a>
                 </div>
             </div><br>
         {% endfor %}
